@@ -15,7 +15,10 @@ const {
 let recipes = readRecipesFromJSONFile(filename);
   
 function RecipeServer(){
-  const app = express();  
+  // Create server.
+  const app = express();
+
+  // Authorization to send requests.
   app.use(cors());
   app.options('*', cors());
 
@@ -92,7 +95,7 @@ function RecipeServer(){
     let j = 0;
     while (j < len && !found)
     {
-      if (recipes[j]["id"] === id_r)
+      if (Number(recipes[j]["id"]) == Number(id_r))
       {
         found = true;
         index = j;
@@ -136,7 +139,6 @@ function RecipeServer(){
       k++;
     }
     
-    
     if (!found)
       res.status(404).send({ message : `No recipe with id: ${id_r} found`});
     
@@ -178,4 +180,5 @@ function RecipeServer(){
   return app;
 }
 
+// Launch the server.
 RecipeServer();

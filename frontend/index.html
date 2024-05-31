@@ -13,7 +13,7 @@
   		<ul>
     		<li>
       		<label for="name">Name</label>
-      		<input type="text" id="name" name="name" required/>
+      		<textarea id="name" name="name" required></textarea>
    		  </li>
     		<li>
       		<label for="description">Description</label>
@@ -28,8 +28,8 @@
       		<textarea id="instructions" name="instructions" required></textarea>
     		</li>
   		</ul>
-			<button id="create" type="submit">Create recipe</button>
-			<button id="update" type="submit" hidden>Update recipe</button>
+			<input type="button" id="create" onclick="createRecipe()" value="Create recipe"></button>
+			<input type="button" id="update" onclick="updateRecipe2()" value="Update recipe" hidden></button>
 		</form>
 		<div id='div'>
 			<ul id='recipes'></ul>

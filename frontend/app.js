@@ -10,6 +10,8 @@ const de = document.getElementById('description');
 const ingr = document.getElementById('ingredients');
 const inst = document.getElementById('instructions');
 
+let id_glob = -1;
+
 /*
 ** Fetch all recipes and display them.
 */
@@ -19,6 +21,7 @@ async function displayRecipes() {
     });
     let resp = await response.json();
     list_recipes.innerHTML = '';
+
     for (let recipe of resp)
     {
       createItem(recipe);
@@ -27,6 +30,7 @@ async function displayRecipes() {
 
 /*
 ** Create an item with the recipe to add to the list of recipes.
+** Also create a delete button and an update button.
 */
 function createItem(recipe) {
   let item = document.createElement('li');
@@ -45,42 +49,89 @@ function createItem(recipe) {
   del.classList.add('delete')
   item.appendChild(del);
   
-  // let update = document.createElement('button');
-  // update.texttContent = 'Update';
-  // update.classList.add('update')
-  // item.appendChild(update);
+  let update = document.createElement('button');
+  update.textContent = 'Update';
+  update.classList.add('update')
+  item.appendChild(update);
   
   list_recipes.appendChild(item);
 
   let id = recipe['id'];
   del.addEventListener('click', () => deleteRecipe(id, del));
-  // update.addEventListener('click', () => updateRecipe(id, update));
+  update.addEventListener('click', () => updateRecipe(id, update));
 }
 
-// async function updateRecipe(id, update){
-//   cr.hidden = false;
-//   up.hidden = true;
 
-//   const response1 = await fetch(`http://${host}:${port}/api/recipes/${id}`, {
-//     method: "GET",
-//   });
+/*
+** First part to update a recipe when update button of recipe clicked.
+** Send a request to retrieve the recipe.
+** Then put the recipe to the form.
+*/
+async function updateRecipe(id, update){
 
-//   let resp = response1.json();
+  cr.style.display = 'none';
+  up.style.display = 'block';
 
-//   na.innerHTML = resp.name;
-//   de.innerHTML = resp.description;
-//   ins.innerHTML = resp.instructions;
-//   ing.innerHTML = resp.instructions;
+  const response = await fetch(`http://${host}:${port}/api/recipes/${id}`, {
+    method: "GET",
+  });
+
+  let resp = await response.json();
+
+  na.innerHTML = resp.name;
+  de.innerHTML = resp.description;
+  inst.innerHTML = resp.instructions;
+  ingr.innerHTML = resp.instructions;
+
+  id_glob = id;
+}
+
+/*
+** Second part to update a recipe, when update recipe button of form clicked.
+** Retrieve the info of the form.
+** Send a request to update the info of the recipe.
+** Display all the recipes.
+*/
+async function updateRecipe2(){
+  const response1 = await fetch(`http://${host}:${port}/api/recipes/${id_glob}`, {
+    method: "GET",
+  });
+
+  let resp = await response1.json();
   
-//   let data = ;
-//   const response2 = await fetch(`http://${host}:${port}/api/recipes/${id}`, {
-//     method: "PUT",
-//     body: data;
-//   });
-        
-//   displayRecipes();
-// }
+  const formData = new FormData(form);
+  const formObject = Object.fromEntries(formData);
+  
+  let object = {};
+  formData.forEach(function(value, key){
+    object[key] = value;
+  });
+  const timestamp = Date(Date.now());
+  let time = timestamp.toString();
+  object['createdAt'] = resp['createdAt'];
+  object['updatedAt'] = time;
+     
+  let json = JSON.stringify(object);
 
+  const response = await fetch(`http://${host}:${port}/api/recipes/${id_glob}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: json,
+  });
+
+  let re = await response.json();
+
+  cr.style.display = 'block';
+  up.style.display = 'none';
+
+  displayRecipes();
+}
+
+/*
+** Delete the recipe with a request and then dislay the others recipes.
+*/
 async function deleteRecipe(id, del){
   del.parentNode.remove();
   const response = await fetch(`http://${host}:${port}/api/recipes/${id}`, {
@@ -90,45 +141,41 @@ async function deleteRecipe(id, del){
   displayRecipes();
 }
 
-
 /*
-** Wait for user to create recipe, then send it to the server
-** and then reload the list of recipes displayed.
+** Retrieve the data send by the user from the form.
+** Send a request to add the recipe.
+** Display all the recipes.
 */
-document.addEventListener('DOMContentLoaded', (event) => {
-    const form = document.getElementById('form');
+async function createRecipe() {
+    
+  const formData = new FormData(form);
+  const formObject = Object.fromEntries(formData);
+  
+  let object = {};
+  formData.forEach(function(value, key){
+    object[key] = value;
+  });
 
-    form.addEventListener('submit', async function(event) {
-        event.preventDefault();
-
-        const formData = new FormData(form);
-        const formObject = Object.fromEntries(formData);
-
-        let object = {};
-        formData.forEach(function(value, key){
-          object[key] = value;
-        });
-
-        const timestamp = Date(Date.now());
-        let time = timestamp.toString();
-        object['createdAt'] = time;
-        object['updatedAt'] = time;
-      
-        let json = JSON.stringify(object);
+  if (object.name === '' || object.description === '' || object.ingredients === '' || object.instructions === '')
+    return;
+  
+  const timestamp = Date(Date.now());
+  let time = timestamp.toString();
+  object['createdAt'] = time;
+  object['updatedAt'] = time;
+     
+  let json = JSON.stringify(object);
+                
+  const response = await fetch(`http://${host}:${port}/api/recipes`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: json,
+  });
         
-        console.log(json);
-        
-        const response = await fetch(`http://${host}:${port}/api/recipes`, {
-           method: "POST",
-           headers: {
-              "Content-Type": "application/json",
-            },
-           body: json,
-        });
-        
-        displayRecipes();
-    });
-});
+  displayRecipes();
+}
 
 /*
 ** Initial fetch to display recipes.
