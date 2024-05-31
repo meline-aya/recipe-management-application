@@ -1,4 +1,5 @@
 const http = require('http');
+const cors = require('cors');
 const express = require('express');
 
 const host = 'localhost';
@@ -14,7 +15,9 @@ const {
 let recipes = readRecipesFromJSONFile(filename);
   
 function RecipeServer(){
-  const app = express();
+  const app = express();  
+  app.use(cors());
+  app.options('*', cors());
 
   app.use(express.json());
 
@@ -118,7 +121,7 @@ function RecipeServer(){
   // DELETE request: delete a specific recipe by id.
   app.delete('/api/recipes/:id', (req, res) => {
     let id_r = req.params["id"];
-    
+    console.log('aaaaa');
     let found = false;
     let index = -1;
 
@@ -167,10 +170,12 @@ function RecipeServer(){
   });  
   
   // ---------------------------------------------------------------------
-
+  
   app.listen(port, () => {
     console.log(`Server running at http://${host}:${port}/`);
   });
+  
+  return app;
 }
 
 RecipeServer();
