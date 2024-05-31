@@ -25,21 +25,24 @@ function createItem(recipe) {
   let item = document.createElement('li');
   let text = document.createElement('span');
   
-  let recip = recipe['name'] + '%0D%0ADescription: ' + recipe['description'] 
+  let recip = '\n' + recipe['name'] + '\nDescription: ' + recipe['description'] 
     + '\nIngredients: ' + recipe['ingredients'] + '\nInstructions: ' 
-    + recipe['instructions'] + '\nCreatedAt: ' + recipe['createdAt'] 
-    + '\nUpdatedAt: ' + recipe['updatedAt'];
+    + recipe['instructions'] + '\nCreated at: ' + recipe['createdAt'] 
+    + '\nUpdated at: ' + recipe['updatedAt'] + '\n';
   
-  text.textContent = recip;
+  text.innerText = recip;
   item.appendChild(text);
 
   let del = document.createElement('button');
   del.textContent = 'Delete';
+  del.classList.add('delete')
   item.appendChild(del);
   
   list_recipes.appendChild(item);
 
-  // del.addEventListener('click', deleteRecipe(recipe['id'], del));
+  let id = recipe['id'];
+  // del.onclick = deleteRecipe(id, del);
+  // del.addEventListener('click', deleteRecipe(id, del));
 }
 
 async function deleteRecipe(id, del){
@@ -67,19 +70,20 @@ document.addEventListener('DOMContentLoaded', (event) => {
         const formData = new FormData(form);
         const formObject = Object.fromEntries(formData);
 
-        var object = {};
+        let object = {};
         formData.forEach(function(value, key){
           object[key] = value;
         });
-        var json = JSON.stringify(object);
-        
+
         const timestamp = Date(Date.now());
         let time = timestamp.toString();
-        json.createdAt = timestamp.toString();
-        json.updatedAt = timestamp.toString();
+        object['createdAt'] = time;
+        object['updatedAt'] = time;
+      
+        let json = JSON.stringify(object);
         
         console.log(json);
-
+        
         const response = await fetch(`http://${host}:${port}/api/recipes`, {
            method: "POST",
            headers: {
